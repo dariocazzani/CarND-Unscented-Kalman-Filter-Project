@@ -282,59 +282,16 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
     Zsig(1,i) = Xsig_pred_(1,i);
   }
 
-  //mean predicted measurement
-  VectorXd z_pred = VectorXd(n_z_);
-  z_pred.fill(0.0);
-  for (int i=0; i < 2*n_aug_+1; i++) {
-     z_pred = z_pred + weights_(i) * Zsig.col(i);
-  }
-
-  //measurement covariance matrix S
-  MatrixXd S = MatrixXd(n_z_,n_z_);
-  S.fill(0.0);
-  for (int i = 0; i < 2 * n_aug_ + 1; i++) {  //2n+1 simga points
-    //residual
-    VectorXd z_diff = Zsig.col(i) - z_pred;
-    S = S + weights_(i) * z_diff * z_diff.transpose();
-  }
-
-  //add measurement noise covariance matrix
   MatrixXd R = MatrixXd(n_z_,n_z_);
   R <<   std_laspx_*std_laspx_, 0,
          0,                   std_laspy_*std_laspy_;
-  S = S + R;
 
-  //create matrix for cross correlation Tc
-  MatrixXd Tc = MatrixXd(n_x_, n_z_);
-
-  //UPDATE
   //create vector for incoming radar measurement
   VectorXd z = VectorXd(n_z_);
   z << meas_package.raw_measurements_[0],
-       meas_package.raw_measurements_[1],
+      meas_package.raw_measurements_[1];
 
-  //calculate cross correlation matrix
-  Tc.fill(0.0);
-  for (int i = 0; i < 2 * n_aug_ + 1; i++) {  //2n+1 simga points
-
-    //residual
-    VectorXd z_diff = Zsig.col(i) - z_pred;
-
-    // state difference
-    VectorXd x_diff = Xsig_pred_.col(i) - x_;
-
-    Tc = Tc + weights_(i) * x_diff * z_diff.transpose();
-  }
-
-  //Kalman gain K;
-  MatrixXd K = Tc * S.inverse();
-
-  //residual
-  VectorXd z_diff = z - z_pred;
-
-  //update state mean and covariance matrix
-  x_ = x_ + K * z_diff;
-  P_ = P_ - K*S*K.transpose();
+  Update(Zsig, n_z_, R, z);
 
 }
 
@@ -376,6 +333,22 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
     Zsig(2,i) = (p_x*v1 + p_y*v2 ) / sqrt(p_x*p_x + p_y*p_y);   //r_dot
   }
 
+  MatrixXd R = MatrixXd(n_z_,n_z_);
+  R <<   std_radr_*std_radr_, 0,                      0,
+         0,                   std_radphi_*std_radphi_, 0,
+         0,                   0,                       std_radrd_*std_radrd_;
+
+  //create vector for incoming radar measurement
+  VectorXd z = VectorXd(n_z_);
+  z << meas_package.raw_measurements_[0],
+      meas_package.raw_measurements_[1],
+      meas_package.raw_measurements_[2];
+
+  Update(Zsig, n_z_, R, z);
+}
+
+void UKF::Update(const MatrixXd &Zsig, const int& n_z_, const MatrixXd &R, const VectorXd &z)
+{
   //mean predicted measurement
   VectorXd z_pred = VectorXd(n_z_);
   z_pred.fill(0.0);
@@ -390,43 +363,40 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
     //residual
     VectorXd z_diff = Zsig.col(i) - z_pred;
 
-    //angle normalization
-    tools.normalize_angle(z_diff(1));
-  
+    if(z_diff.size() == 3) // Radar measuerement
+    {
+      //angle normalization
+      tools.normalize_angle(z_diff(1));
+    }
     S = S + weights_(i) * z_diff * z_diff.transpose();
   }
 
   //add measurement noise covariance matrix
-  MatrixXd R = MatrixXd(n_z_,n_z_);
-  R <<   std_radr_*std_radr_, 0,                      0,
-         0,                   std_radphi_*std_radphi_, 0,
-         0,                   0,                       std_radrd_*std_radrd_;
   S = S + R;
 
   //create matrix for cross correlation Tc
   MatrixXd Tc = MatrixXd(n_x_, n_z_);
 
   //UPDATE
-  //create vector for incoming radar measurement
-  VectorXd z = VectorXd(n_z_);
-  z << meas_package.raw_measurements_[0],
-       meas_package.raw_measurements_[1],
-       meas_package.raw_measurements_[2];
-
   //calculate cross correlation matrix
   Tc.fill(0.0);
   for (int i = 0; i < 2 * n_aug_ + 1; i++) {  //2n+1 simga points
 
     //residual
     VectorXd z_diff = Zsig.col(i) - z_pred;
-    //angle normalization
-    tools.normalize_angle(z_diff(1));
+    if(z_diff.size() == 3) // Radar measuerement
+    {
+      //angle normalization
+      tools.normalize_angle(z_diff(1));
+    }
 
     // state difference
     VectorXd x_diff = Xsig_pred_.col(i) - x_;
-    //angle normalization
-    tools.normalize_angle(x_diff(3));
-
+    if(z_diff.size() == 3) // Radar measuerement
+    {
+      //angle normalization
+      tools.normalize_angle(x_diff(3));
+    }
     Tc = Tc + weights_(i) * x_diff * z_diff.transpose();
   }
 
@@ -437,10 +407,13 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   VectorXd z_diff = z - z_pred;
 
   //angle normalization
-  tools.normalize_angle(z_diff(1));
+  if(z_diff.size() == 3) // Radar measuerement
+  {
+    //angle normalization
+    tools.normalize_angle(z_diff(1));
+  }
 
   //update state mean and covariance matrix
   x_ = x_ + K * z_diff;
   P_ = P_ - K*S*K.transpose();
-
 }
