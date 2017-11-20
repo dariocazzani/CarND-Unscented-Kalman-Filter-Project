@@ -79,4 +79,6 @@ We want to know id we set up the noise parameters correctly. At every tie cyce w
 We need to make sure that the filter is consistent and provides realistic estimation uncertainty.
 
 ### How
-We use the **Normalized Innovation Squared**
+We use the **Normalized Innovation Squared**: The Innovation is the difference between the predicted measurement and the actual measurement. We normalize it by putting it into relation to the Covariance Matrix S.
+
+![](images/NIS.png) 
