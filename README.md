@@ -50,3 +50,33 @@ After having calcuated the sigma points, we just project them one by one through
 `See file src/ukf.cpp from line 196 to line 237`
 
 3. **Predict Mean and Covariance Matrix**: This is where the prediction procedure ends: we need to use the predicted sigma points to calculate the mean and covariance of the predicted state. It is important to notice the use of the weights for each sigma point: because we used lambda before to set how much we want to spread the sigma points, now we need to consider weigh the prediction according to the spread. `See file src/ukf.cpp from line 247 to line 261`
+
+### Update Steps
+1. **Predict Measurement:**
+    
+    * **Transform sigma points into measurement space** 
+        * Radar: `See file src/ukf.cpp from line 319 to line 341`
+        * Lidar: `See file src/ukf.cpp from line 280 to line 290`
+    * **Set Measurement Noise Covariance Matrix**
+        * Radar: `See file src/ukf.cpp from line 343 to line 346`
+        * Lidar: `See file src/ukf.cpp from line 292 to line 294`
+    * **Create vector for incoming radar measurement**
+        * Radar: `See file src/ukf.cpp from line 348 to line 352`
+        * Lidar: `See file src/ukf.cpp from line 296 to line 299`
+    * **Inizialize:** Mean predicted z vector, Measurement Covariance Matrix S and Cross Correlation Matrix Tc. `See file src/ukf.cpp from line 359 to line 385`
+
+2. **Update:**
+    
+    `See file src/ukf.cpp from line 393 to line 430`
+    * Calcualate Cross Correlation Matrix.
+    * Calculate Kalman Gain
+    * Update state mean and covariance matrix
+    
+## Check Consistency
+ 
+### Basic idea
+We want to know id we set up the noise parameters correctly. At every tie cyce we calcualte the measurement prediction and the Covariane Matrix S. Then we receive the actual measurement.
+We need to make sure that the filter is consistent and provides realistic estimation uncertainty.
+
+### How
+We use the **Normalized Innovation Squared**
