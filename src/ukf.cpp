@@ -384,7 +384,12 @@ void UKF::Update(const MatrixXd &Zsig, const int& n_z_, const MatrixXd &R, const
   //create matrix for cross correlation Tc
   MatrixXd Tc = MatrixXd(n_x_, n_z_);
 
-  //UPDATE
+
+
+  // ***** //
+  //UPDATE //
+  // ***** //
+
   //calculate cross correlation matrix
   Tc.fill(0.0);
   for (int i = 0; i < 2 * n_aug_ + 1; i++) {  //2n+1 simga points
