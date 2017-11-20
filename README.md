@@ -34,7 +34,7 @@ Then open the simulator and click on start.
 
 ## Workflow
 
-![](images/Workflow.png)
+![](images/workflow.png)
 
 ### Basic Idea
 
