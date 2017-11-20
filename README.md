@@ -97,3 +97,26 @@ From file `src/ukf.cpp at line 135` we print whether the NIS values are lower or
 std::cout<<"NIS_Lidar OK?: "<<BoolToString(!(NIS_Lidar > chi_squared_2D))<<std::endl;
 std::cout<<"NIS_Radar OK?: "<<BoolToString(!(NIS_Radar > chi_squared_3D))<<std::endl;
  ```
+ 
+ The result is a long list of strings like the one below.
+ 
+ ![](images/NIS_ok.png) 
+
+## Choosing The Process Noise Standard Deviation values
+
+The choice of these values was based on
+
+* I reasoned about what longitudinal and yaw acceleration a real biker can possibly have. I estimeted them to be not more than 2.5 m/s^2 and 2.5 rad/s^2
+* I then tweaked them until I got low values of _RMSE_
+* I made sure that NIS values did not exceed the maximum values too ofter
+
+I ended up choosing 
+
+```C++
+// Process noise standard deviation longitudinal acceleration in m/s^2
+std_a_ = 1;
+
+// Process noise standard deviation yaw acceleration in rad/s^2
+std_yawdd_ = 1;
+```
+ 
