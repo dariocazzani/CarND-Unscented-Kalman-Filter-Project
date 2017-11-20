@@ -7,6 +7,11 @@ using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using std::vector;
 
+inline const char * const BoolToString(bool b)
+{
+  return b ? "Yes" : "No";
+}
+
 /**
  * Initializes Unscented Kalman filter
  */
@@ -69,7 +74,8 @@ UKF::UKF() {
     weights_(i) = weight;
   }
 
-  NIS = 0;
+  NIS_Radar = 0;
+  NIS_Lidar = 0;
 }
 
 UKF::~UKF() {}
@@ -126,6 +132,8 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
     UpdateLidar(meas_package);
   }
 
+  std::cout<<"NIS_Lidar OK?: "<<BoolToString(!(NIS_Lidar > chi_squared_2D))<<std::endl;
+  std::cout<<"NIS_Radar OK?: "<<BoolToString(!(NIS_Radar > chi_squared_3D))<<std::endl;
 }
 
 /**
@@ -416,4 +424,8 @@ void UKF::Update(const MatrixXd &Zsig, const int& n_z_, const MatrixXd &R, const
   //update state mean and covariance matrix
   x_ = x_ + K * z_diff;
   P_ = P_ - K*S*K.transpose();
+
+  NIS_Lidar = (z - z_pred).transpose() * S.inverse() * (z - z_pred);
+  if(z_diff.size() == 3) // Radar measuerement
+    NIS_Radar = NIS_Lidar;
 }

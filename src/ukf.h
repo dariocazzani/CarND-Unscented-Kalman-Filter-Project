@@ -69,7 +69,10 @@ public:
   double lambda_;
 
   ///* NIS Normalized Innovation Squared
-  double NIS;
+  double NIS_Radar;
+  double NIS_Lidar;
+  const double chi_squared_2D = 5.991;
+  const double chi_squared_3D = 7.815;
 
   // used to compute the angle normalization
   Tools tools;
@@ -110,7 +113,7 @@ public:
   void UpdateRadar(MeasurementPackage meas_package);
 
   /**
-   * Common operations for UpdateLidar and UpdateRadar 
+   * Common operations for UpdateLidar and UpdateRadar
    */
   void Update(const MatrixXd &Zsig, const int& n_z_, const MatrixXd &R, const VectorXd &z);
 };
