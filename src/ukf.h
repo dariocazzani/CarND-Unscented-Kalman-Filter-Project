@@ -3,6 +3,7 @@
 
 #include "measurement_package.h"
 #include "Eigen/Dense"
+#include "tools.h"
 #include <vector>
 #include <string>
 #include <fstream>
@@ -67,6 +68,11 @@ public:
   ///* Sigma point spreading parameter
   double lambda_;
 
+  ///* NIS Normalized Innovation Squared
+  double NIS;
+
+  // used to compute the angle normalization
+  Tools tools;
 
   /**
    * Constructor

@@ -68,6 +68,8 @@ UKF::UKF() {
     double weight = 0.5/(n_aug_+lambda_);
     weights_(i) = weight;
   }
+
+  NIS = 0;
 }
 
 UKF::~UKF() {}
@@ -107,7 +109,6 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
     time_us_ = meas_package.timestamp_;
 
     is_initialized_ = true;
-    std::cout<<"initialized"<<std::endl;
     return;
   }
 
@@ -140,7 +141,12 @@ void UKF::Prediction(double delta_t) {
   vector, x_. Predict sigma points, the state, and the state covariance matrix.
   */
 
-  // GENERATE SIGMA POINTS
+
+
+  // ********************* //
+  // GENERATE SIGMA POINTS //
+  // ********************* //
+
   //create augmented mean vector
   VectorXd x_aug = VectorXd(n_aug_);
 
@@ -172,7 +178,13 @@ void UKF::Prediction(double delta_t) {
     Xsig_aug.col(i+1+n_aug_) = x_aug - sqrt(lambda_+n_aug_) * L.col(i);
   }
 
-  // PREDICT SIGMA POINTS
+
+
+
+  // ******************** //
+  // PREDICT SIGMA POINTS //
+  // ******************** //
+
   for (int i = 0; i< 2*n_aug_+1; i++)
   {
     //extract values for better readability
@@ -217,7 +229,13 @@ void UKF::Prediction(double delta_t) {
     Xsig_pred_(4,i) = yawd_p;
   }
 
-  // PREDICT MEAN AND COVARIANCE
+
+
+
+  // *************************** //
+  // PREDICT MEAN AND COVARIANCE //
+  // *************************** //
+
   x_.fill(0.0);
   for (int i = 0; i < 2 * n_aug_ + 1; i++) {  //iterate over sigma points
     x_ = x_+ weights_(i) * Xsig_pred_.col(i);
@@ -373,9 +391,8 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
     VectorXd z_diff = Zsig.col(i) - z_pred;
 
     //angle normalization
-    while (z_diff(1)> M_PI) z_diff(1)-=2.*M_PI;
-    while (z_diff(1)<-M_PI) z_diff(1)+=2.*M_PI;
-
+    tools.normalize_angle(z_diff(1));
+  
     S = S + weights_(i) * z_diff * z_diff.transpose();
   }
 
@@ -403,14 +420,12 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
     //residual
     VectorXd z_diff = Zsig.col(i) - z_pred;
     //angle normalization
-    while (z_diff(1)> M_PI) z_diff(1)-=2.*M_PI;
-    while (z_diff(1)<-M_PI) z_diff(1)+=2.*M_PI;
+    tools.normalize_angle(z_diff(1));
 
     // state difference
     VectorXd x_diff = Xsig_pred_.col(i) - x_;
     //angle normalization
-    while (x_diff(3)> M_PI) x_diff(3)-=2.*M_PI;
-    while (x_diff(3)<-M_PI) x_diff(3)+=2.*M_PI;
+    tools.normalize_angle(x_diff(3));
 
     Tc = Tc + weights_(i) * x_diff * z_diff.transpose();
   }
@@ -422,8 +437,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   VectorXd z_diff = z - z_pred;
 
   //angle normalization
-  while (z_diff(1)> M_PI) z_diff(1)-=2.*M_PI;
-  while (z_diff(1)<-M_PI) z_diff(1)+=2.*M_PI;
+  tools.normalize_angle(z_diff(1));
 
   //update state mean and covariance matrix
   x_ = x_ + K * z_diff;
