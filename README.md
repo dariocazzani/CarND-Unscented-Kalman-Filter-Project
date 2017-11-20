@@ -82,3 +82,18 @@ We need to make sure that the filter is consistent and provides realistic estima
 We use the **Normalized Innovation Squared**: The Innovation is the difference between the predicted measurement and the actual measurement. We normalize it by putting it into relation to the Covariance Matrix S.
 
 ![](images/NIS.png) 
+
+### Chi Squared Distribution
+NIS follows the Chi Squared Distribution. By using the table below we can make sure that our NIS values are not too high. For example, for Radar measurements we have 3 dimensions - degrees of freedom - therefore the probability of having values above 7.815 is below 5%.
+
+![](images/ChiSquared.png) 
+
+### Where in the code and how:
+Nis values are calcualated here `See file src/ukf.cpp from line 432 to line 434`.
+The maximum values with which we want to compare our NIS with are defined at `See file src/ukf.h from line 74 to line 75`.
+From file `src/ukf.cpp at line 135` we print whether the NIS values are lower or higher than the maximum values.
+
+```C++
+std::cout<<"NIS_Lidar OK?: "<<BoolToString(!(NIS_Lidar > chi_squared_2D))<<std::endl;
+std::cout<<"NIS_Radar OK?: "<<BoolToString(!(NIS_Radar > chi_squared_3D))<<std::endl;
+ ```
