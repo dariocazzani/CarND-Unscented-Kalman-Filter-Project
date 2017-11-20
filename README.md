@@ -32,4 +32,21 @@ Then open the simulator and click on start.
         
 ![](images/Finished_loop.png) 
 
+## Workflow
 
+![](images/Workflow.png)
+
+### Basic Idea
+
+The Unscented Kalman Filter solves the problem of finding the best approximation for a Normal Distribution using Sigma Points.
+Sigma Points serve as a representation of the whole distribution and we chose them aroung the mean state and in a certain relation to the standard deviation of every state dimention.
+After having calcuated the sigma points, we just project them one by one through the non linear function f.
+
+### Prediction Steps
+1. **Generate Sigma Points:** we generate an _"augmented"_ mean vector x and covariance P in order to take into consideration the process noise.
+`See file src/ukf.cpp from line 159 to line 187`
+
+2. **Predict Sigma Points:** We simply insert evert sigma point into the process model.
+`See file src/ukf.cpp from line 196 to line 237`
+
+3. **Predict Mean and Covariance Matrix**: This is where the prediction procedure ends: we need to use the predicted sigma points to calculate the mean and covariance of the predicted state. It is important to notice the use of the weights for each sigma point: because we used lambda before to set how much we want to spread the sigma points, now we need to consider weigh the prediction according to the spread. `See file src/ukf.cpp from line 247 to line 261`
